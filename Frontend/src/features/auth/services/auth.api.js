@@ -33,7 +33,7 @@ export async function login(email, password){
     }
 }
 
-async function logout(){
+export async function logout(){
     try{
         const response = await api.get("/api/auth/logout")
         return response.data
@@ -43,7 +43,7 @@ async function logout(){
     }
 }
 
-async function getMe(){
+export async function getMe(){
     try{
         const response = await api.get("/api/auth/get-me")
 

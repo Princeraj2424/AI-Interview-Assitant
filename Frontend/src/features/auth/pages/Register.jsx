@@ -1,11 +1,28 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import{useAuth} from "../hooks/useAuth"
+import {useNavigate} from "react-router-dom"
 
 
 const Register = () => {
-    const handleSubmit = (e) => {
+const navigate = useNavigate()
+const [username, setUsername] = useState("")
+const [email, setEmail] = useState("")
+const [password, setPassword] = useState("")
+const {Loading, handleRegister} = useAuth()
+
+
+    const handleSubmit =async (e) => {
         e.preventDefault()
+       await handleRegister({username, email, password})
+        navigate("/login")
+
+        if(Loading){
+            return (<main><h1>Loading.....</h1></main>)
+        }
     }
+    
+
   return (
 
     <main>
@@ -18,24 +35,25 @@ const Register = () => {
 
                  <div className='input-group'>
                     <label htmlFor="username">Username</label>
-                    <input type="text" id='username' name='username' placeholder='Enter username'/>
+                    <input type="text" id='username' name='username' placeholder='Enter username' value={username} onChange={(e) => setUsername(e.target.value)} />
                 </div>
 
                 <div className='input-group'>
                     <label htmlFor="email">Email</label>
-                    <input type="email" id='email' name='email'placeholder='Enter email address'/> 
+                    <input type="email" id='email' name='email' placeholder='Enter email address' value={email} onChange={(e) => setEmail(e.target.value)} /> 
                 </div>
 
                 <div className='input-group'>
                     <label htmlFor="password">Password</label>
-                    <input type="password" id='password' name='password' placeholder='Enter password'/>
-                    
+                    <input type="password" id='password' name='password' placeholder='Enter password' value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
 
-                <button className='primary-button' type='submit'>Register</button>
-        </form>
-        <p className='redirect-text'>Already have an account? <Link to='/login' className='redirect-link'>Login here</Link></p>
-        
+                <button className='primary-button' type='submit' disabled={Loading}>
+                    {Loading ? 'Registering...' : 'Register'}
+                </button>
+            </form>
+            <p className='redirect-text'>Already have an account? <Link to='/login' className='redirect-link'>Login here</Link></p>
+            
 
         </div>
     </main>
