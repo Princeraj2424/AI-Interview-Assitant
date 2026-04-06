@@ -1,51 +1,52 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {useAuth} from "../hooks/useAuth"
-import {useNavigate} from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import "../services/auth.form.scss"
 
 
 const Login = () => {
     const {Loading, handleLogin} = useAuth()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const Navigate = useNavigate()
+    const navigate = useNavigate()
     
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        handleLogin({email, password})
-        Navigate("/")
-
-        if(Loading){
-            return (<main><h1>Loading.....</h1></main>)
-        }
+        await handleLogin({email, password})
+        navigate("/")
     }
-  return (
-    <main>
-        <div className='form-container'>
-            <h1>Interview AI</h1>
-            <p className='subtitle'>Login to continue your mock interview practice.</p>
-
-            <form onSubmit={handleSubmit}>
-                <div className='input-group'>
-                    <label htmlFor="email">Email</label>
-                    <input type="email" id='email' name='email' placeholder='Enter email address' value={email} onChange={(e) => setEmail(e.target.value)} /> 
+    return (
+        <main className='auth-page'>
+            <section className='auth-card'>
+                <div className='auth-brand'>
+                    <span className='auth-pill'>AI Mock Interviews</span>
+                    <h1>Welcome Back</h1>
+                    <p>Sign in to generate personalized interview strategies and track your prep progress.</p>
                 </div>
 
-                <div className='input-group'>
-                    <label htmlFor="password">Password</label>
-                    <input type="password" id='password' name='password' placeholder='Enter password' value={password} onChange={(e) => setPassword(e.target.value)} />
-                    
-                </div>
+                <form onSubmit={handleSubmit} className='auth-form'>
+                    <div className='input-group'>
+                        <label htmlFor="email">Email</label>
+                        <input type="email" id='email' name='email' placeholder='you@example.com' value={email} onChange={(e) => setEmail(e.target.value)} /> 
+                    </div>
 
-                <button className='primary-button' type='submit' disabled={Loading}>
-                    {Loading ? 'Logging in...' : 'Login'}
-                </button>
-            </form>
-        <p className='redirect-text'>Don't have an account? <a href='/register' className='redirect-link'>Register</a></p>
+                    <div className='input-group'>
+                        <label htmlFor="password">Password</label>
+                        <input type="password" id='password' name='password' placeholder='Enter your password' value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
 
-        </div>
-    </main>
-  )
+                    <button className='primary-button' type='submit' disabled={Loading}>
+                        {Loading ? 'Logging in...' : 'Login'}
+                    </button>
+                </form>
+
+                <p className='redirect-text'>
+                    Don't have an account? <Link to='/register' className='redirect-link'>Create one</Link>
+                </p>
+            </section>
+        </main>
+    )
 }
 
 export default Login

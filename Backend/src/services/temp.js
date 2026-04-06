@@ -67,4 +67,9 @@ const sampleInterviewReport = {
 	]
 }
 
-module.exports = { sampleInterviewReport, jobDescription, resume, selfDescription }
+module.exports = {
+	sampleInterviewReport,
+	jobDescription,
+	resume,
+	selfDescription
+}

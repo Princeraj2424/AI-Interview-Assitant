@@ -1,0 +1,105 @@
+.auth-page {
+	min-height: 100vh;
+	padding: 1.2rem;
+	display: grid;
+	place-items: center;
+	background:
+		radial-gradient(900px 420px at 85% -10%, rgba(255, 42, 140, 0.18), transparent 68%),
+		radial-gradient(760px 380px at 0% 100%, rgba(20, 180, 255, 0.14), transparent 72%);
+}
+
+.auth-card {
+	width: min(460px, 100%);
+	padding: 1.4rem;
+	border-radius: 18px;
+	border: 1px solid #2a3f64;
+	background: linear-gradient(180deg, #0b1527ee, #0a1424ee);
+	box-shadow: 0 22px 50px rgba(2, 8, 22, 0.7);
+	display: grid;
+	gap: 1rem;
+}
+
+.auth-brand h1 {
+	margin: 0.45rem 0 0;
+	font-size: clamp(1.5rem, 2.7vw, 2.1rem);
+	color: #edf3ff;
+	line-height: 1.1;
+}
+
+.auth-brand p {
+	margin: 0.45rem 0 0;
+	color: #9bb0d3;
+	font-size: 0.9rem;
+	line-height: 1.45;
+}
+
+.auth-pill {
+	display: inline-flex;
+	align-items: center;
+	border: 1px solid #324f79;
+	background: #0d213f;
+	color: #bcd0f3;
+	font-size: 0.7rem;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	border-radius: 999px;
+	padding: 0.28rem 0.62rem;
+}
+
+.auth-form {
+	display: grid;
+	gap: 0.85rem;
+}
+
+.auth-card .input-group {
+	gap: 0.38rem;
+}
+
+.auth-card label {
+	color: #d8e5fc;
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.auth-card input {
+	border: 1px solid #2a4366;
+	background: #0a182c;
+	color: #eef4ff;
+}
+
+.auth-card input::placeholder {
+	color: #7e94ba;
+}
+
+.auth-card input:focus {
+	border-color: #4a7ccc;
+	box-shadow: 0 0 0 3px rgba(74, 124, 204, 0.25);
+}
+
+.auth-card .primary-button {
+	margin-top: 0.3rem;
+	height: 44px;
+	border-radius: 10px;
+	font-weight: 700;
+	color: #fff;
+	background: linear-gradient(135deg, #ff2a8c, #ff0f6f);
+	box-shadow: 0 9px 22px rgba(255, 42, 140, 0.35);
+}
+
+.auth-card .primary-button:hover {
+	box-shadow: 0 12px 26px rgba(255, 42, 140, 0.5);
+	background: linear-gradient(135deg, #ff4a9f, #ff2b82);
+}
+
+.auth-card .redirect-text {
+	color: #9bb0d3;
+	font-size: 0.88rem;
+}
+
+.auth-card .redirect-link {
+	color: #ff64af;
+}
+
+.auth-card .redirect-link:hover {
+	color: #ff92c6;
+}
