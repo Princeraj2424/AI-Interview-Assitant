@@ -27,12 +27,12 @@ export const useAuth = () => {
         try{
             const data = await login(email, password)
             setUser(data.user)
+            setLoading(false)
             return data
         }catch(error){
             console.error("Error while logging in:", error)
-            throw error
-        } finally {
             setLoading(false)
+            throw error
         }
     }
 
@@ -42,12 +42,12 @@ export const useAuth = () => {
 
             const data = await register(username, email, password)
             setUser(data.user)
+            setLoading(false)
             return data
         }catch(error){
             console.error("Error while registering user", error)
-            throw error
-        } finally {
             setLoading(false)
+            throw error
         }
         
     }

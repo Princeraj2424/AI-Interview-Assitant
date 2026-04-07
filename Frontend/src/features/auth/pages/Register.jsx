@@ -10,13 +10,20 @@ const navigate = useNavigate()
 const [username, setUsername] = useState("")
 const [email, setEmail] = useState("")
 const [password, setPassword] = useState("")
+const [error, setError] = useState("")
 const {Loading, handleRegister} = useAuth()
 
 
     const handleSubmit =async (e) => {
         e.preventDefault()
-        await handleRegister({username, email, password})
-        navigate("/login")
+        setError("")
+        try {
+            await handleRegister({username, email, password})
+            // Redirect to home after successful registration
+            navigate("/home")
+        } catch (err) {
+            setError(err.message || "Registration failed. Please try again.")
+        }
     }
     
 
@@ -30,19 +37,21 @@ const {Loading, handleRegister} = useAuth()
                 </div>
 
                 <form onSubmit={handleSubmit} className='auth-form'>
+                    {error && <div style={{color: '#ef4444', marginBottom: '1rem', fontSize: '0.9rem'}}>{error}</div>}
+                    
                     <div className='input-group'>
                         <label htmlFor="username">Username</label>
-                        <input type="text" id='username' name='username' placeholder='Choose a username' value={username} onChange={(e) => setUsername(e.target.value)} />
+                        <input type="text" id='username' name='username' placeholder='Choose a username' value={username} onChange={(e) => setUsername(e.target.value)} required/>
                     </div>
 
                     <div className='input-group'>
                         <label htmlFor="email">Email</label>
-                        <input type="email" id='email' name='email' placeholder='you@example.com' value={email} onChange={(e) => setEmail(e.target.value)} /> 
+                        <input type="email" id='email' name='email' placeholder='you@example.com' value={email} onChange={(e) => setEmail(e.target.value)} required/> 
                     </div>
 
                     <div className='input-group'>
                         <label htmlFor="password">Password</label>
-                        <input type="password" id='password' name='password' placeholder='Create a strong password' value={password} onChange={(e) => setPassword(e.target.value)} />
+                        <input type="password" id='password' name='password' placeholder='Create a strong password' value={password} onChange={(e) => setPassword(e.target.value)} required/>
                     </div>
 
                     <button className='primary-button' type='submit' disabled={Loading}>

@@ -95,6 +95,42 @@ const skillGapSchema = new mongoose.Schema({
     },{
     _id: false
  })
+
+ const voiceInterviewTurnSchema = new mongoose.Schema({
+    questionIndex: {
+        type: Number,
+        required: true
+    },
+    question: {
+        type: String,
+        required: true
+    },
+    questionType: {
+        type: String,
+        enum: ["Technical", "Behavioral"],
+        required: true
+    },
+    userAnswer: {
+        type: String,
+        required: true
+    },
+    feedback: {
+        type: String,
+        required: true
+    },
+    score: {
+        type: Number,
+        min: 0,
+        max: 10,
+        required: true
+    },
+    completedAt: {
+        type: Date,
+        default: Date.now
+    }
+ },{
+    _id: false
+ })
  const interviewReportSchema = new mongoose.Schema({
     jobDescription: {
         type: String,
@@ -116,10 +152,37 @@ const skillGapSchema = new mongoose.Schema({
     skillGaps: [skillGapSchema],
     preparationPlan: [preparationPlanSchema],
 
+    // Voice Interview Fields
+    voiceInterviewStarted: {
+        type: Boolean,
+        default: false
+    },
+    voiceInterviewCompleted: {
+        type: Boolean,
+        default: false
+    },
+    voiceInterviewTurns: [voiceInterviewTurnSchema],
+    overallPerformanceScore: {
+        type: Number,
+        min: 0,
+        max: 10,
+        default: null
+    },
+    voiceInterviewCompletedAt: {
+        type: Date,
+        default: null
+    },
+
     user:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
+    },
+
+    title: {
+        type: String,
+        required: [true, "job title is required"]
+
     }
 },{
     timestamps: true
