@@ -62,6 +62,34 @@ const voiceInterviewTurnSchema = z.object({
     isComplete: z.boolean().describe("Whether the voice interview should end")
 }).describe("A single voice interview turn response with evaluation and next step")
 
+function normalizeVoiceTurnFeedback(turn) {
+    const safeTurn = turn || {}
+    const normalizedScore = Number.isFinite(Number(safeTurn.score)) ? Number(safeTurn.score) : 0
+    const feedbackText = String(safeTurn.feedback || "").trim()
+    const followUpText = String(safeTurn.followUp || "").trim()
+
+    // For clearly weak/incorrect answers, avoid encouraging phrases and move forward.
+    if (normalizedScore <= 4) {
+        const correctedFeedback = feedbackText
+            ? feedbackText.replace(/on the right track/gi, "not correct for this question")
+            : "This answer is not correct for the question. Focus on the core concept and one relevant example next time."
+
+        return {
+            ...safeTurn,
+            feedback: correctedFeedback,
+            followUp: "Let's move to the next question.",
+            score: normalizedScore
+        }
+    }
+
+    return {
+        ...safeTurn,
+        feedback: feedbackText || "Thanks for your response.",
+        followUp: followUpText || "Let's move to the next question.",
+        score: normalizedScore
+    }
+}
+
 function extractKeywords(text = "", limit = 6) {
     const stopWords = new Set([
         "the", "and", "for", "with", "that", "this", "you", "your", "are", "from",
@@ -95,12 +123,53 @@ function titleCase(text = "") {
         .join(" ")
 }
 
+function calculateDeterministicRoleFit(jobDescription = "", resume = "", selfDescription = "") {
+    const jdKeywords = extractKeywords(jobDescription, 24)
+    const profileKeywords = extractKeywords(`${resume}\n${selfDescription}`, 40)
+
+    if (!jdKeywords.length || !profileKeywords.length) {
+        return 60
+    }
+
+    const jdSet = new Set(jdKeywords)
+    const profileSet = new Set(profileKeywords)
+    let overlap = 0
+    for (const token of jdSet) {
+        if (profileSet.has(token)) overlap += 1
+    }
+
+    const overlapRatio = overlap / jdSet.size
+
+    // Base + overlap coverage keeps score stable without inflating weak matches.
+    const baseScore = 35
+    const overlapContribution = overlapRatio * 60
+
+    // Small confidence boost when candidate profile has enough signal words.
+    const profileDepthBoost = profileSet.size >= 12 ? 5 : profileSet.size >= 8 ? 3 : 0
+
+    return Math.max(0, Math.min(100, Math.round(baseScore + overlapContribution + profileDepthBoost)))
+}
+
+function reconcileRoleFitScore({ aiScore, jobDescription, resume, selfDescription }) {
+    const deterministic = calculateDeterministicRoleFit(jobDescription, resume, selfDescription)
+    const aiNumeric = Number(aiScore)
+
+    if (!Number.isFinite(aiNumeric)) {
+        return deterministic
+    }
+
+    const gap = Math.abs(aiNumeric - deterministic)
+    const aiWeight = gap >= 35 ? 0.2 : 0.4
+    const deterministicWeight = 1 - aiWeight
+    return Math.max(0, Math.min(100, Math.round(aiNumeric * aiWeight + deterministic * deterministicWeight)))
+}
+
 function buildFallbackInterviewReport(jobDescription = "", resume = "", selfDescription = "") {
     const keywords = extractKeywords(`${jobDescription}\n${resume}\n${selfDescription}`, 8)
     const primarySkill = keywords[0] || "JavaScript"
     const secondarySkill = keywords[1] || "React"
     const tertiarySkill = keywords[2] || "Node.js"
-    const scoreSeed = Math.min(100, Math.max(55, 60 + keywords.length * 4))
+    const scoreSeed = calculateDeterministicRoleFit(jobDescription, resume, selfDescription)
 
     const technicalQuestions = [
         {
@@ -249,7 +318,15 @@ async function generateInterviewReport(jobDescription, resume, selfDescription){
             return buildFallbackInterviewReport(jobDescription, resume, selfDescription)
         }
 
-        return validated.data                  
+        return {
+            ...validated.data,
+            matchScore: reconcileRoleFitScore({
+                aiScore: validated.data.matchScore,
+                jobDescription,
+                resume,
+                selfDescription
+            })
+        }
     } catch (error) {
         console.warn("generateInterviewReport failed, using fallback report:", error.message)
         return buildFallbackInterviewReport(jobDescription, resume, selfDescription)
@@ -328,8 +405,10 @@ Rules:
 1) feedback should be concise, practical, and interview-like.
 2) score must be from 0 to 10.
 3) followUp should sound like a real interviewer response.
-4) If this is the last question, set isComplete true and nextQuestion empty or omitted.
-5) Return valid JSON only matching schema.`
+4) If the answer is clearly wrong or off-topic, feedback must explicitly say it is incorrect (do not say "right track").
+5) For wrong answers, followUp must move to the next question and must not ask the candidate to retry the same question.
+6) If this is the last question, set isComplete true and nextQuestion empty or omitted.
+7) Return valid JSON only matching schema.`
 
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
@@ -346,17 +425,25 @@ Rules:
             throw new Error("AI returned invalid voice interview response. Please try again.")
         }
 
-        return validated.data
+        return normalizeVoiceTurnFeedback(validated.data)
     } catch (error) {
         console.warn("generateVoiceInterviewTurn failed, using fallback turn:", error.message)
         return {
-            feedback: "Your answer is on the right track, but it needs more structure, detail, and a clearer example.",
-            score: 6,
-            followUp: "Can you walk me through one concrete example with the result you achieved?",
+            feedback: "This answer is not correct for the question. Review the core concept and answer more directly.",
+            score: 3,
+            followUp: "Let's move to the next question.",
             nextQuestion: questionIndex + 1 >= totalQuestions ? undefined : `Let's move to the next question: ${currentQuestion}`,
             isComplete: questionIndex + 1 >= totalQuestions
         }
     }
 }
 
-module.exports = { generateInterviewReport, generateTailoredResumeData, generateVoiceInterviewTurn, interviewReportSchema, tailoredResumeSchema, voiceInterviewTurnSchema }
+module.exports = {
+    generateInterviewReport,
+    generateTailoredResumeData,
+    generateVoiceInterviewTurn,
+    reconcileRoleFitScore,
+    interviewReportSchema,
+    tailoredResumeSchema,
+    voiceInterviewTurnSchema
+}

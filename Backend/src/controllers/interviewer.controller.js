@@ -1,5 +1,5 @@
 const { PDFParse } = require("pdf-parse")
-const { generateInterviewReport, generateTailoredResumeData, generateVoiceInterviewTurn } = require("../services/ai.service")
+const { generateInterviewReport, generateTailoredResumeData, generateVoiceInterviewTurn, reconcileRoleFitScore } = require("../services/ai.service")
 const InterviewReportModel = require("../models/interviewReport.model")
 const { renderResumePdf } = require("../services/resumePdf.service")
 
@@ -286,10 +286,17 @@ async function getVoiceInterviewFeedbackController(req, res) {
         }
 
         // Compile feedback and performance data
+        const roleFitScore = reconcileRoleFitScore({
+            aiScore: interviewReport.matchScore,
+            jobDescription: interviewReport.jobDescription,
+            resume: interviewReport.resume,
+            selfDescription: interviewReport.selfDescription
+        })
+
         const performanceData = {
             _id: interviewReport._id,
             title: interviewReport.title,
-            matchScore: interviewReport.matchScore,
+            matchScore: roleFitScore,
             overallPerformanceScore: interviewReport.overallPerformanceScore,
             voiceInterviewCompleted: interviewReport.voiceInterviewCompleted,
             totalTurns: interviewReport.voiceInterviewTurns.length,
